@@ -54,6 +54,7 @@ TODO: リサイズに対応する
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 #endif
+using namespace DirectX;
 
 namespace sf 
 {
@@ -140,7 +141,7 @@ namespace sf
     virtual void create_device() 
     {
       base_win32_window_t::create_device();
-      create_dcomp_device();
+     // create_dcomp_device();
 
     }
 
@@ -215,8 +216,8 @@ namespace sf
       THROW_IF_ERR(dcomp_device_->CreateVisual(&v));
       THROW_IF_ERR(v->SetContent(dcomp_surf.Get()));
 
-//      v->SetOffsetX(width_ / 2.0f);
-//      v->SetOffsetY(height_ / 5.0f);
+      //v->SetOffsetX(width_ / 2.0f);
+      //v->SetOffsetY(height_ / 5.0f);
 
       dcomp_target_->SetRoot(v.Get());
 
@@ -302,8 +303,8 @@ namespace sf
         // Opacityのアニメーション
         IDCompositionAnimationPtr anim;
         THROW_IF_ERR(dcomp_device_->CreateAnimation(&anim));
-        anim->AddCubic(0.0f,0.0f,1.0f / 4.0f,0.0f,0.0f);
-        anim->AddCubic(4.0f,1.0f,-1.0f / 4.0f,0.0f,0.0f);
+        anim->AddCubic(0.0f,0.0f,0.5f / 4.0f,0.0f,0.0f);
+        anim->AddCubic(4.0f,0.5f,-0.5f / 4.0f,0.0f,0.0f);
         anim->AddRepeat(8.0f,8.0f);
         //anim->End(10.0f,0.0f);
 
@@ -344,7 +345,7 @@ namespace sf
     virtual void discard_device()
     {
       base_win32_window_t::discard_device();
-      discard_dcomp_device();
+      //discard_dcomp_device();
     }
 
     void discard_dcomp_device()
@@ -352,10 +353,234 @@ namespace sf
       dcomp_device_.Reset();
     }
 
-    void render()
+    void render(first_b2d& b2d)
     {
+      if(activate_){
+        b2World& world(b2d.world());
 
-      base_win32_window_t::render();
+        static float rot = 0.0f;
+        float color[4] = { 0.0f, 0.0f, 0.0f, 0.5f };    
+
+        // 描画ターゲットのクリア
+        d3d_context_->ClearRenderTargetView(d3d_render_target_view_.Get(),color);
+        // 深度バッファのクリア
+        d3d_context_->ClearDepthStencilView(depth_view_.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0 );
+/*
+        // 色の変更
+        mesh_color_.x = 1.0f;
+        mesh_color_.y = 1.0f;
+        mesh_color_.z = 1.0f;
+
+        // 定数更新
+
+        cb_changes_every_frame cb;
+        static float rad = 0.0f;
+        rad += 0.01f;
+        mat_world_ = XMMatrixRotationY( rad );
+        cb.mWorld = XMMatrixTranspose( mat_world_ );
+        cb.vLightColor = mesh_color_;
+        d3d_context_->UpdateSubresource( cb_changes_every_frame_.Get(), 0, NULL, &cb, 0, 0 );
+        d3d_context_->OMSetRenderTargets( 1, d3d_render_target_view_.GetAddressOf(), depth_view_.Get() );
+
+        // 四角形
+        d3d_context_->VSSetShader( v_shader_.Get(), NULL, 0 );
+        d3d_context_->VSSetConstantBuffers( 0, 1, cb_never_changes_.GetAddressOf() );
+        d3d_context_->VSSetConstantBuffers( 1, 1, cb_change_on_resize_.GetAddressOf() );
+        d3d_context_->VSSetConstantBuffers( 2, 1, cb_changes_every_frame_.GetAddressOf() );
+        d3d_context_->PSSetShader( p_shader_.Get(), NULL, 0 );
+        d3d_context_->PSSetConstantBuffers( 2, 1, cb_changes_every_frame_.GetAddressOf() );
+        d3d_context_->PSSetShaderResources( 0, 1, shader_res_view_.GetAddressOf() );
+        d3d_context_->PSSetSamplers( 0, 1, sampler_state_.GetAddressOf() );
+
+        d3d_context_->DrawIndexed( 36, 0, 0 );
+        */
+        
+
+        
+        d2d_context_->BeginDraw();
+        //d2d_context_->Clear();
+
+
+        //thunk_proc_ = (WNDPROC)thunk_.getCode();
+        D2D_RECT_F layout_rect_ = D2D1::RectF(0.0f,100.0f,width_,100.0f);
+        // Text Formatの作成
+        THROW_IF_ERR(write_factory_->CreateTextFormat(
+          L"メイリオ",                // Font family name.
+          NULL,                       // Font collection (NULL sets it to use the system font collection).
+          DWRITE_FONT_WEIGHT_REGULAR,
+          DWRITE_FONT_STYLE_NORMAL,
+          DWRITE_FONT_STRETCH_NORMAL,
+          32.000f,
+          L"ja-jp",
+          &write_text_format_
+          ));
+        d2d_context_->SetTransform(D2D1::Matrix3x2F::Identity());
+        ID2D1SolidColorBrushPtr brush,line_brush,obj_brush;
+        d2d_context_->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::OrangeRed), &brush);
+        d2d_context_->CreateSolidColorBrush(D2D1::ColorF(1.0f,1.0f,1.0f,0.5f), &line_brush);
+        d2d_context_->CreateSolidColorBrush(D2D1::ColorF(0.5f,0.5f,1.0f,1.0f), &obj_brush);
+
+        {
+          D2D_POINT_2F start,end;
+          for(float i = 0;i < width_+1.0f;i += 16.0f)
+          {
+            start.x = end.x = i;
+            end.y = height_;
+            start.y = 0.0f;
+            d2d_context_->DrawLine(start,end,line_brush.Get(),0.5f);
+          }
+
+          for(float i = 0;i < height_+1.0f;i += 16.0f)
+          {
+            start.y = end.y = i;
+            end.x = width_;
+            start.x = 0.0f;
+            d2d_context_->DrawLine(start,end,line_brush.Get(),0.5f);
+          }
+
+        }
+
+        static int count;
+        count++;
+
+        // Box2Dオブジェクトの描画
+        b2Body* body = world.GetBodyList();
+        int32 body_count = world.GetBodyCount();
+        //D2D1::Matrix3x2F mat = D2D1::Matrix3x2F::Identity();
+        //mat._22 = -1.0f;
+        //mat = mat * D2D1::Matrix3x2F::Scale(10.0f,10.0f);
+        //D2D1::Matrix3x2F matt = D2D1::Matrix3x2F::Translation(width_ / 2.0f,height_ /2.0f);
+        //mat._31 = matt._31;
+        //mat._32 = matt._32;
+
+        b2Mat22 mat;
+ //       b2Mat33 mat;
+        float32 scale = 5.0f;
+        mat.SetZero();
+        mat.ex.x = 1.0f * scale;
+        mat.ey.y = -1.0f * scale;
+        b2Vec2 screen;
+        screen.x = width_ / 2.0f;
+        screen.y = height_ / 2.0f;
+//        float32 limit_y = -screen.y;
+        //mat.ez.x = width_ / 2.0f;
+        //mat.ez.y = height_ / 2.0f;
+
+        for(int32 i = 0;i < body_count;++i){
+          b2Fixture* fix = body->GetFixtureList();
+          const b2Vec2& vb = body->GetPosition();
+          while(fix){
+            b2Shape* s = fix->GetShape();
+            switch(s->GetType())
+            {
+            case  b2Shape::e_polygon:
+              {
+                ID2D1PathGeometry1Ptr geometry;
+                //        ID2D1RectangleGeometryPtr 
+                d2d_factory_->CreatePathGeometry(&geometry);
+                ID2D1GeometrySinkPtr sink;
+                geometry->Open(&sink);
+
+                b2PolygonShape* sp = static_cast<b2PolygonShape*>(s);
+                int32 vcount = sp->GetVertexCount();
+
+                b2Vec2 v1 = sp->GetVertex(0);// + vb;
+                v1 = b2Mul(body->GetTransform(),v1);
+                v1 = b2Mul(mat,v1) + screen;
+
+
+                sink->BeginFigure(D2D1::Point2F(v1.x ,v1.y),D2D1_FIGURE_BEGIN_FILLED);
+                for(int j = 1;j < vcount;++j)
+                {
+                  b2Vec2 v = sp->GetVertex(j);// + vb;
+                  v = b2Mul(body->GetTransform(),v);
+                  v = b2Mul(mat,v) + screen;
+                  sink->AddLine(D2D1::Point2F(v.x,v.y));
+                }
+                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                sink->Close();
+
+                d2d_context_->FillGeometry(geometry.Get(),obj_brush.Get());
+
+              }
+              break;
+            case  b2Shape::e_circle:
+              {
+                b2CircleShape* circle = static_cast<b2CircleShape*>(s);
+                b2Vec2 center = b2Mul(mat,b2Mul(body->GetTransform(), circle->m_p));
+                float32 radius = circle->m_radius * scale;
+                b2Vec2 axis = b2Mul(body->GetTransform().q, b2Vec2(1.0f, 0.0f));
+                d2d_context_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(center.x + screen.x,center.y + screen.y),radius,radius),obj_brush.Get());
+              }
+              break;
+            case b2Shape::e_edge:
+              {
+                b2EdgeShape* edge = static_cast<b2EdgeShape*>(s);
+                b2Vec2 v1 = b2Mul(mat,b2Mul(body->GetTransform(), edge->m_vertex1)) + screen;
+                b2Vec2 v2 = b2Mul(mat,b2Mul(body->GetTransform(), edge->m_vertex2)) + screen;
+                d2d_context_->DrawLine(D2D1::Point2F(v1.x ,v1.y),D2D1::Point2F(v2.x,v2.y),obj_brush.Get());
+
+              }
+              break;
+
+            case b2Shape::e_chain:
+              {
+                ID2D1PathGeometry1Ptr geometry;
+                //        ID2D1RectangleGeometryPtr 
+                d2d_factory_->CreatePathGeometry(&geometry);
+                ID2D1GeometrySinkPtr sink;
+                geometry->Open(&sink);
+
+                b2ChainShape* chain = static_cast<b2ChainShape*>(s);
+                int32 count = chain->m_count;
+                const b2Vec2* vertices = chain->m_vertices;
+
+
+                b2Vec2 v1 = b2Mul(mat,b2Mul(body->GetTransform(), vertices[0])) + screen;
+                sink->BeginFigure(D2D1::Point2F(v1.x ,v1.y),D2D1_FIGURE_BEGIN_FILLED);
+                for (int32 i = 1; i < count; ++i)
+                {
+                  b2Vec2 v2 = b2Mul(mat,b2Mul(body->GetTransform(), vertices[i])) + screen;
+                  sink->AddLine(D2D1::Point2F(v2.x,v2.y));
+                }
+                sink->EndFigure(D2D1_FIGURE_END_CLOSED);
+                sink->Close();
+                d2d_context_->DrawGeometry(geometry.Get(),obj_brush.Get());
+              }
+              break;
+            }
+            fix = fix->GetNext();
+          }
+          body = body->GetNext();
+        }
+
+
+        std::wstring m(L"Box2Dの処理結果をDirect2Dで描画する");
+        d2d_context_->DrawTextW(
+          m.c_str(),
+          m.size(),
+          write_text_format_.Get(),
+          layout_rect_, 
+          brush.Get());
+
+
+        d2d_context_->EndDraw();
+
+        // フリップ
+
+        DXGI_PRESENT_PARAMETERS parameters = {};
+        static int off = 0;
+        POINT offset = {0,off--};
+        RECT srect ={0,0,width_,height_};
+        parameters.DirtyRectsCount = 0;
+        parameters.pDirtyRects = nullptr;
+        parameters.pScrollRect = nullptr;
+        parameters.pScrollOffset = nullptr;
+        if(FAILED(dxgi_swap_chain_->Present1(1,0,&parameters)))
+        {
+          restore_swapchain_and_dependent_resources();
+        };
+      }
     }
 
 
@@ -548,7 +773,7 @@ namespace sf
     impl_->message_box(text,caption,type);
   };
   void dcomposition_window::update(){impl_->update();};
-  void dcomposition_window::render(){impl_->render();};
+  void dcomposition_window::render(first_b2d& b2d){impl_->render(b2d);};
   // void dcomposition_window::player_ready(){impl_->player_ready();};
 
 

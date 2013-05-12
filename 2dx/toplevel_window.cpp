@@ -342,6 +342,7 @@ namespace sf
 
     // thisとhwndをつなぐthunkクラス
     // メンバー関数を直接呼び出す。
+#ifdef _WIN64
     struct hwnd_this_thunk2 : public Xbyak::CodeGenerator {
       hwnd_this_thunk2(LONG_PTR this_addr,const void * proc)
       {
@@ -362,7 +363,20 @@ namespace sf
         ret(0);
       }
     };
-
+#else
+	struct hwnd_this_thunk : public Xbyak::CodeGenerator {
+		hwnd_this_thunk(base_window* impl,WNDPROC proc)
+		{
+			push(eax);
+			mov(eax,ptr[esp + 8]);
+			mov(ptr[&(impl->hwnd_)],eax);
+			mov(eax,(DWORD)impl);
+			mov(ptr[esp + 8],eax);
+			pop(eax);
+			jmp(proc);
+		}
+	};
+#endif
     //hwnd_this_thunk2 thunk_info_;
     //  hwnd_this_thunk2 thunk_config_;
     //proc_t proc_info_;

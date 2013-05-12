@@ -74,14 +74,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <LibraryPath>H:\satoshi_documents\documents\Visual Studio 2012\Projects\2dx\2dx\x64\Debug;H:\libs\Box2D\Build\vs2010\bin\Debug;$(LibraryPath)</LibraryPath>
+    <LibraryPath>H:\satoshi_documents\documents\Visual Studio 2012\Projects\2dx\2dx\x64\Debug;H:\libs\Box2D\Build\vs2010\bin\Debug;H:\libs\DirectXTex\DirectXTex\x64\Debug;H:\libs\DirectXTK\Bin\Desktop_2012\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <LibraryPath>H:\libs\Box2D\Build\vs2010\bin\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>H:\libs\Box2D\Build\vs2010\bin\Release;H:\libs\DirectXTex\DirectXTex\x64\Release;H:\libs\DirectXTK\Bin\Desktop_2012\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -149,6 +149,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>Comctl32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -161,6 +162,7 @@
     <ClCompile Include="dcomposition_window.cpp" />
     <ClCompile Include="dpi.cpp" />
     <ClCompile Include="exception.cpp" />
+    <ClCompile Include="first_b2d.cpp" />
     <ClCompile Include="icon.cpp" />
     <ClCompile Include="info_tab_dialog.cpp" />
     <ClCompile Include="input_agent.cpp" />
@@ -209,6 +211,7 @@
     <ClInclude Include="dout.h" />
     <ClInclude Include="dpi.h" />
     <ClInclude Include="exception.h" />
+    <ClInclude Include="first_b2d.h" />
     <ClInclude Include="icon.h" />
     <ClInclude Include="info_tab_dialog.h" />
     <ClInclude Include="input_agent.h" />
@@ -246,7 +249,7 @@
     <ClInclude Include="wasapi.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="wasapi2.rc" />
+    <ResourceCompile Include="2dx.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -30,6 +30,7 @@ Boston, MA 02111-1307 USA
 #include "dout.h"
 #include "midi_input.h"
 #include "midi_output.h"
+#include "first_b2d.h"
 
 #ifdef _DEBUG
 #define _CRTDBG_MAP_ALLOC
@@ -82,7 +83,9 @@ namespace sf {
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // wcoutで文字化けしないように、ロケールをデフォルト言語に設定する
+#ifdef _DEBUG
     wdout.imbue(std::locale(""));
+#endif
     std::wcout.imbue(std::locale(""));
 
     // 2重起動の防止処理
@@ -143,7 +146,9 @@ namespace sf {
 
     // ウィンドウを作成する
     window_ = sf::create_dcomposition_window(
-      std::wstring(L"DirectComposition サンプル"),std::wstring(L"DirectComposition サンプル"),5,false,::GetSystemMetrics(SM_CXSCREEN),::GetSystemMetrics(SM_CYSCREEN));
+      std::wstring(L"Box2D + Direc2D サンプル"),
+   //   std::wstring(L"Box2D + Direc2D サンプル"),5,false,640,480);
+     std::wstring(L"Box2D + Direc2D サンプル"),5,false,::GetSystemMetrics(SM_CXSCREEN),::GetSystemMetrics(SM_CYSCREEN));
     ////  ファイルリーダーエージェントの起動
     reader_agent_.start();
     //// キャプチャエージェントの起動
@@ -170,7 +175,18 @@ namespace sf {
     reader_agent_.read_file();
 
     // メッセージ処理ループ
-    WPARAM ret = sf::run_message_loop()();
+    //WPARAM ret = sf::run_message_loop()();
+    first_b2d b2d;
+    WPARAM ret = sf::peek_message_loop(
+      [this,&b2d]() -> void
+      {
+        if(window_->is_show()){
+          window_->render(b2d);
+          b2d.step();
+        }
+      }
+      )();
+    
     // WPARAM ret = sf::dialog_message_loop(reinterpret_cast<HWND>(window_->raw_handle()))();
 
     // マルチメディアタイマの粒度を元に戻す。

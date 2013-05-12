@@ -123,7 +123,8 @@ namespace sf
           d2d_factory_.GetAddressOf()
           ));
 #else
-        THROW_IFERR(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory_));
+        D2D1_FACTORY_OPTIONS options = {};
+        THROW_IFERR(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,options, d2d_factory_.GetAddressOf()));
 #endif
 
       }

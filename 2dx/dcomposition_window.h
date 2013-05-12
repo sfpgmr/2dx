@@ -6,6 +6,7 @@
 #include "icon.h"
 #include "base_window.h"
 #include "taskbar.h"
+#include "first_b2d.h"
 
 #define WM_PLAY_STOP WM_USER + 1
 #define WM_PLAY_PAUSE WM_USER + 2
@@ -62,7 +63,7 @@ namespace sf
     void message_box(const std::wstring& text,const std::wstring& caption,uint32_t type = MB_OK);
     void text(std::wstring& text);
     void update();
-    void render();
+    void render(first_b2d& b2d);
 
   private:
     struct impl;

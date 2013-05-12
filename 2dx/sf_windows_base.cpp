@@ -348,7 +348,7 @@ namespace sf
     //    FillRect(p->hdc,&p->rcPaint,brush);
     //  }
     //}
-    render();
+    //render();
     return  std::is_same<proc_t,wndproc>::value?0:FALSE;
   }
 
@@ -560,7 +560,8 @@ namespace sf
         &d2d_factory_
         ));
 #else
-      EXCEPTION_ON_ERROR(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &d2d_factory_));
+      D2D1_FACTORY_OPTIONS options = {};
+      THROW_IF_ERR(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, options,d2d_factory_.GetAddressOf()));
 #endif
 
     }
